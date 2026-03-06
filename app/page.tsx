@@ -4,6 +4,11 @@ import { PosterGallery } from "@/components/poster-gallery"
 
 const posters = [
   {
+    id: 0,
+    title: "降临科技",
+    image: "https://ihdstory-1383535556.cos.ap-guangzhou.myqcloud.com/%E6%A1%88%E4%BE%8B0_%E9%99%8D%E4%B8%B4%E7%A7%91%E6%8A%80.png",
+  },
+  {
     id: 1,
     title: "AirTouch",
     image: "https://ihdstory-1383535556.cos.ap-guangzhou.myqcloud.com/%E6%A1%88%E4%BE%8B1_AirTouch_%E6%9B%B4%E6%96%B0%E7%89%88.png",
