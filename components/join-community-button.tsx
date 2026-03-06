@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 import {
   Dialog,
@@ -11,12 +12,25 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-export function JoinCommunityButton() {
+interface JoinCommunityButtonProps {
+  label?: string
+  className?: string
+}
+
+export function JoinCommunityButton({
+  label = "立即加入社区",
+  className,
+}: JoinCommunityButtonProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(124,92,252,0.3)] hover:scale-105">
-          立即加入社区
+        <button
+          className={cn(
+            "px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(124,92,252,0.3)] hover:scale-105",
+            className,
+          )}
+        >
+          {label}
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

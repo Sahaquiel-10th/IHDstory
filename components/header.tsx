@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { JoinCommunityButton } from "./join-community-button"
 
 export function Header() {
   return (
@@ -25,12 +26,10 @@ export function Header() {
           <a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             关于社区
           </a>
-          <a 
-            href="#" 
+          <JoinCommunityButton
+            label="加入我们"
             className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            加入我们
-          </a>
+          />
         </nav>
       </div>
     </header>

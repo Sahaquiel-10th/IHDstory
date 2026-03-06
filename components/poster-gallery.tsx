@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Poster {
   id: number
@@ -22,6 +23,7 @@ interface Rect {
 }
 
 export function PosterGallery({ posters }: PosterGalleryProps) {
+  const isMobile = useIsMobile()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -31,6 +33,9 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
   const [originRect, setOriginRect] = useState<Rect | null>(null)
   const [targetRect, setTargetRect] = useState<Rect | null>(null)
   const [isExpandedVisible, setIsExpandedVisible] = useState(false)
+  const posterWidth = isMobile ? 236 : 340
+  const posterGap = isMobile ? 20 : 48
+  const posterHeight = Math.round(posterWidth * 1.414)
 
   // 处理鼠标滚轮横向滚动
   useEffect(() => {
@@ -54,15 +59,15 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
     if (!container) return
 
     const handleScroll = () => {
-      const posterWidth = 340 + 48 // poster width + gap
+      const slotWidth = posterWidth + posterGap
       const scrollPosition = container.scrollLeft + container.offsetWidth / 2
-      const index = Math.floor(scrollPosition / posterWidth)
+      const index = Math.floor(scrollPosition / slotWidth)
       setActiveIndex(Math.min(Math.max(0, index), posters.length - 1))
     }
 
     container.addEventListener("scroll", handleScroll)
     return () => container.removeEventListener("scroll", handleScroll)
-  }, [posters.length])
+  }, [posters.length, posterWidth, posterGap])
 
   // 拖拽滚动
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -87,8 +92,8 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
 
   const scrollToIndex = (index: number) => {
     if (!scrollRef.current) return
-    const posterWidth = 340 + 48
-    const targetScroll = index * posterWidth - (scrollRef.current.offsetWidth - 340) / 2
+    const slotWidth = posterWidth + posterGap
+    const targetScroll = index * slotWidth - (scrollRef.current.offsetWidth - posterWidth) / 2
     scrollRef.current.scrollTo({
       left: targetScroll,
       behavior: "smooth"
@@ -97,7 +102,7 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
 
   const getExpandedRect = (): Rect => {
     if (typeof window === "undefined") {
-      return { top: 0, left: 0, width: 340, height: 481 }
+      return { top: 0, left: 0, width: posterWidth, height: posterHeight }
     }
 
     const aspectRatio = 210 / 297
@@ -187,7 +192,7 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
       window.removeEventListener("keydown", handleKeydown)
       window.removeEventListener("resize", handleResize)
     }
-  }, [expandedIndex, posters.length])
+  }, [expandedIndex, posters.length, posterWidth, posterHeight])
 
   const expandedPoster = expandedIndex === null ? null : posters[expandedIndex]
 
@@ -202,10 +207,13 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
       {/* 画廊容器 */}
       <div
         ref={scrollRef}
-        className={`flex gap-12 overflow-x-auto scrollbar-hide py-8 px-[calc(50vw-170px)] ${
+        className={`flex overflow-x-auto scrollbar-hide py-6 md:py-8 ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         style={{
+          gap: `${posterGap}px`,
+          paddingLeft: `calc(50vw - ${posterWidth / 2}px)`,
+          paddingRight: `calc(50vw - ${posterWidth / 2}px)`,
           scrollbarWidth: "none",
           msOverflowStyle: "none",
           scrollSnapType: "x mandatory",
@@ -225,6 +233,8 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
               poster={poster}
               isActive={index === activeIndex}
               index={index}
+              posterWidth={posterWidth}
+              posterHeight={posterHeight}
               onExpand={(element) => openExpandedPoster(index, element)}
             />
           </div>
@@ -279,7 +289,7 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
 
           <button
             onClick={showPrevPoster}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/60 text-white transition-all duration-300 hover:bg-black/80 ${
+            className={`hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/60 text-white transition-all duration-300 hover:bg-black/80 ${
               isExpandedVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
             }`}
             aria-label="上一张海报"
@@ -289,7 +299,7 @@ export function PosterGallery({ posters }: PosterGalleryProps) {
 
           <button
             onClick={showNextPoster}
-            className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/60 text-white transition-all duration-300 hover:bg-black/80 ${
+            className={`hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full p-2 bg-black/60 text-white transition-all duration-300 hover:bg-black/80 ${
               isExpandedVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
             }`}
             aria-label="下一张海报"
@@ -342,19 +352,27 @@ interface PosterCardProps {
   poster: Poster
   isActive: boolean
   index: number
+  posterWidth: number
+  posterHeight: number
   onExpand: (element: HTMLElement) => void
 }
 
-function PosterCard({ poster, isActive, index, onExpand }: PosterCardProps) {
+function PosterCard({
+  poster,
+  isActive,
+  index,
+  posterWidth,
+  posterHeight,
+  onExpand,
+}: PosterCardProps) {
   return (
     <div
       className={`relative transition-all duration-500 ease-out animate-rise-in ${
         isActive ? "scale-100" : "scale-90 opacity-60"
       }`}
       style={{
-        // A4 比例: 1:1.414 (210mm x 297mm)
-        width: "340px",
-        height: "481px", // 340 * 1.414
+        width: `${posterWidth}px`,
+        height: `${posterHeight}px`,
         animationDelay: `${index * 90 + 220}ms`,
       }}
     >
@@ -397,7 +415,7 @@ function PosterCard({ poster, isActive, index, onExpand }: PosterCardProps) {
           fill
           className="object-cover select-none"
           draggable={false}
-          sizes="340px"
+          sizes="(max-width: 767px) 236px, 340px"
         />
 
         {/* 底部渐变 */}
